@@ -13,7 +13,7 @@ Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector
     P += epsilon*N;
     double d = sqrt(dot(S - P, S - P));
     Vector omega = (S - P) / d;
-    Ray r = Ray(P, omega);
+    Ray r = Ray(S, Vector(0, 0, 0) - omega);
     if (!scene.intersection(r).exists) { V_p = 1;}
     else {  
         if (scene.intersection(r).t > d) {
@@ -21,8 +21,7 @@ Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector
         }
         else { V_p = 0;}
     }
-    Vector res = (I / (4*PI*PI*d*d)) * V_p * max(dot(N, omega), 0.) * sigma;
-    return res;
+    return (I / (4*PI*PI*d*d)) * V_p * max(dot(N, omega), 0.) * sigma;
 }
 
 int main(int argc, char **argv) {
@@ -36,21 +35,16 @@ int main(int argc, char **argv) {
     Vector light_source = Vector(-10, 20, 40);
 
     //creating the scene
-    vector<Sphere> scene_components;            //this probably needs to be optimized
-    scene_components.push_back(red_sphere);
-    scene_components.push_back(green_sphere); 
-    scene_components.push_back(blue_sphere);
-    scene_components.push_back(pink_sphere); 
-    scene_components.push_back(object);
+    static Sphere A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, object};
+    vector<Sphere> scene_components(A, A + sizeof(A) / sizeof(A[0]));
 
     Scene scene(scene_components);
 
     //camera and pixel grid
     Vector Q = Vector(0, 0, 55);              //camera center
-    double W = 600;                            //grid width
-    double H = 600;                            //grid height
+    double W = 512;                            //grid width
+    double H = 512;                            //grid height
     double fov = PI/3;                          //alpha, field of view
-    vector< vector<Vector> > grid;            //grid of pixels  
     vector<unsigned char> img;
 
     for (int i = 0; i < H; i++) {
@@ -61,28 +55,15 @@ int main(int argc, char **argv) {
             V[1] = Q[1] - i - 0.5 + (H / 2);
             V[2] = Q[2] - (W / (2 * tan(fov / 2))); 
             Vector n = (V - Q) / sqrt(dot(V - Q, V - Q));                       //normalized ray direction
-
-            /*Intersection x = scene.intersection(Ray(Q, n));
+            Intersection x = scene.intersection(Ray(Q, n));
             int index = scene.closest_intersect(Ray(Q, n));
             Vector color = intensity(scene, scene.spheres[index].albedo, x.P, x.N, 38000, light_source);
-            img.push_back(color[0]*255);
-            img.push_back(color[1]*255);
-            img.push_back(color[2]*255);*/
-
-            if (object.intersect(Ray(Q, n)).exists) {
-                img.push_back(255);
-                img.push_back(255);
-                img.push_back(255);
-            }
-            else { 
-                img.push_back(0);
-                img.push_back(0);
-                img.push_back(0);
-            }
-            row.push_back(n);
+            double power = 1./2.2;
+            img.push_back(pow(color[0], power)*255);
+            img.push_back(pow(color[1], power)*255);
+            img.push_back(pow(color[2], power)*255);
         }
-        grid.push_back(row);
     }
-    stbi_write_png("first_image.png", W, H, 3, &img[0], 0);
+    stbi_write_png("test.png", W, H, 3, &img[0], 0);
 }
 
