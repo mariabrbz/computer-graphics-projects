@@ -36,7 +36,7 @@ class Sphere {
         this->albedo = albedo;
     }
 
-    Intersection intersect(Ray r) {                                     //returns the intersection of sphere with r
+    Intersection intersect(const Ray& r) {                                     //returns the intersection of sphere with r
         Intersection intersection;                                  
         Vector V = r.O - C;
         Vector minus_V = C - r.O;
@@ -44,18 +44,20 @@ class Sphere {
         intersection.exists = (delta >= 0);
 
         if (intersection.exists) {
-            intersection.t1 = dot(r.u, minus_V) - sqrt(delta);
-            intersection.t2 = dot(r.u, minus_V) + sqrt(delta);
+            double sq_root = sqrt(delta);
+            double dot_product = dot(r.u, minus_V);
+            intersection.t1 = dot_product - sq_root;
+            intersection.t2 = dot_product + sq_root;
 
             if (intersection.t2 < 0) { intersection.exists = false;}
             else {
                 if (intersection.t1 >= 0) { intersection.t = intersection.t1;}
                 else { intersection.t = intersection.t2;}
             }
-        }
 
-        intersection.P = r.O + intersection.t*r.u;
-        intersection.N = (intersection.P - C) / sqrt(dot(intersection.P - C, intersection.P - C));
+            intersection.P = r.O + intersection.t*r.u;
+            intersection.N = (intersection.P - C) / sqrt(dot(intersection.P - C, intersection.P - C));  
+        }
         return intersection;
     }
 };
@@ -68,8 +70,8 @@ class Scene {
         this->spheres = spheres;
     }
 
-    int closest_intersect(Ray r) {                   //returns the index of the closest sphere that intersects the ray r
-        int min = pow(10, 7);
+    int closest_intersect(const Ray& r) {                   //returns the index of the closest sphere that intersects the ray r
+        int min = 100000;
         int closest = -1;
         for (int i = 0; i < spheres.size(); i++) {
             if (spheres[i].intersect(r).exists && spheres[i].intersect(r).t < min) {
@@ -80,16 +82,24 @@ class Scene {
         return closest;
     }
 
-    Intersection intersection(Ray r) {
+    Intersection intersection(const Ray& r) {
         Intersection un;
         int i = this->closest_intersect(r);
         if (i == -1) {
             un.exists = false;
             return un;
         }
-        un.exists = true;
         Sphere closest_sphere = spheres[i];
         un = closest_sphere.intersect(r);
         return un;
     }
+
+    /*Vector get_color(const Ray& ray , int ray_depth) {
+        if (ray_depth < 0) {
+            return Vector(0., 0., 0.);
+        }
+        if (this->intersection(ray).exists) {
+
+        }
+    }*/
 };
