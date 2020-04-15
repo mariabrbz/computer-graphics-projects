@@ -31,6 +31,8 @@ int main(int argc, char **argv) {
     Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0));
     Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1));
     Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1));
+    Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1));
+    Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0));
     Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1));
     Vector light_source = Vector(-10, 20, 40);
 
@@ -48,20 +50,22 @@ int main(int argc, char **argv) {
     vector<unsigned char> img;
 
     for (int i = 0; i < H; i++) {
-        vector<Vector> row;
         for (int j = 0; j < W; j++) {
             Vector V;
             V[0] = Q[0] + 0.5 + j - (W / 2);
             V[1] = Q[1] - i - 0.5 + (H / 2);
             V[2] = Q[2] - (W / (2 * tan(fov / 2))); 
             Vector n = (V - Q) / sqrt(dot(V - Q, V - Q));                       //normalized ray direction
+
             Intersection x = scene.intersection(Ray(Q, n));
             int index = scene.closest_intersect(Ray(Q, n));
-            Vector color = intensity(scene, scene.spheres[index].albedo, x.P, x.N, 38000, light_source);
-            double power = 1./2.2;
-            img.push_back(pow(color[0], power)*255);
-            img.push_back(pow(color[1], power)*255);
-            img.push_back(pow(color[2], power)*255);
+            Vector color = intensity(scene, scene.spheres[index].albedo, x.P, x.N, 100000, light_source);
+
+            double power = 1./2.2; 
+            //min(255., max(0, value))
+            img.push_back(min(255., max(0., pow(color[0], power)*255)));
+            img.push_back(min(255., max(0., pow(color[1], power)*255)));
+            img.push_back(min(255., max(0., pow(color[2], power)*255)));
         }
     }
     stbi_write_png("test.png", W, H, 3, &img[0], 0);
