@@ -24,16 +24,42 @@ Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector
     return (I / (4*PI*PI*d*d)) * V_p * max(dot(N, omega), 0.) * sigma;
 }
 
+Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
+    if (ray_depth < 0) {
+        return Vector(0., 0., 0.);
+    }
+
+    int sphere_id = closest_intersect(ray);
+    Intersection inter = spheres[sphere_id].intersect(ray);
+
+    if (inter.exists) {
+        Vector P = inter.P;
+        Vector N = inter.N;
+
+        if (spheres[sphere_id].mirror) {
+            Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
+            return get_color(reflected, ray_depth - 1, light);
+        }
+
+        else {
+            Vector color = intensity(*this, spheres[sphere_id].albedo, P, N, 100000, light);
+            return color;
+        }
+
+    }
+}
+
+
 int main() {
 
     //generating the spheres
-    Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0));
-    Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0));
-    Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1));
-    Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1));
-    Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1));
-    Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0));
-    Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1));
+    Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), false);
+    Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), false);
+    Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1), false);
+    Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1), false);
+    Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), false);
+    Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), false);
+    Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1), true);
     Vector light_source = Vector(-10, 20, 40);
 
     //creating the scene
@@ -43,10 +69,10 @@ int main() {
 
     //camera and pixel grid
     Vector Q = Vector(0, 0, 55);                //camera center
-    double W = 1000;                             //grid width
-    double H = 1000;                             //grid height
-    double fov = PI/1.5;                          //alpha, field of view
-    vector<unsigned char> img(W*H*3);                  //image vector
+    double W = 512;                             //grid width
+    double H = 512;                             //grid height
+    double fov = PI/3;                          //alpha, field of view
+    vector<unsigned char> img(W*H*3);           //image vector
 
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
@@ -56,9 +82,7 @@ int main() {
             V[2] = Q[2] - (W / (2 * tan(fov / 2))); 
             Vector n = (V - Q) / sqrt(dot(V - Q, V - Q));                       //normalized ray direction
 
-            Intersection x = scene.intersection(Ray(Q, n));
-            int index = scene.closest_intersect(Ray(Q, n));
-            Vector color = intensity(scene, scene.spheres[index].albedo, x.P, x.N, 100000, light_source);
+            Vector color = scene.get_color(Ray(Q, n), 60, light_source);
 
             double power = 1./2.2; 
             img[(i*W+j)*3+0] = min(255.,max(0., pow(color[0], power)*255));

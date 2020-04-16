@@ -29,11 +29,13 @@ class Sphere {
     Vector C;           //center C
     double R;           //radius R
     Vector albedo;      //color RGB 0-1
+    bool mirror;
 
-    Sphere(Vector C, double R, Vector albedo) {
+    Sphere(Vector C, double R, Vector albedo, bool mirror) {
         this->C = C;
         this->R = R;
         this->albedo = albedo;
+        this->mirror = mirror;
     }
 
     Intersection intersect(const Ray& r) {                                     //returns the intersection of sphere with r
@@ -65,6 +67,7 @@ class Sphere {
 class Scene {
     public:
     vector<Sphere> spheres;
+    Vector get_color(const Ray& ray , int ray_depth, Vector light);
 
     Scene(vector<Sphere> spheres) {
         this->spheres = spheres;
@@ -94,12 +97,4 @@ class Scene {
         return un;
     }
 
-    /*Vector get_color(const Ray& ray , int ray_depth) {
-        if (ray_depth < 0) {
-            return Vector(0., 0., 0.);
-        }
-        if (this->intersection(ray).exists) {
-
-        }
-    }*/
 };
