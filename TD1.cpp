@@ -33,8 +33,8 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
     Intersection inter = spheres[sphere_id].intersect(ray);
 
     if (inter.exists) {
-        Vector P = inter.P;
         Vector N = inter.N;
+        Vector P = inter.P + 0.001*N;
 
         if (spheres[sphere_id].mirror) {
             Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
