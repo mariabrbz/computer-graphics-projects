@@ -3,19 +3,20 @@
 #include "tools.cpp"
 
 int main() {
-
     //generating the spheres
-    Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), false);
-    Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), false);
-    Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1), false);
-    Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1), false);
-    Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), false);
-    Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), false);
-    Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1), true);
+    Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), false, false);
+    Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), false, false);
+    Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1), false, false);
+    Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1), false, false);
+    Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), false, false);
+    Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), false, false);
+    Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1), true, false);
+    Sphere object2(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), false, true);
+    Sphere object3(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), false, true);
     Vector light_source = Vector(-10, 20, 40);
 
     //creating the scene
-    static Sphere A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, cyan_sphere, yellow_sphere, object};
+    static Sphere A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, cyan_sphere, yellow_sphere, object, object2, object3};
     vector<Sphere> scene_components(A, A + sizeof(A) / sizeof(A[0]));
     Scene scene(scene_components);
 
@@ -23,7 +24,7 @@ int main() {
     Vector Q = Vector(0, 0, 55);                //camera center
     double W = 600;                             //grid width
     double H = 512;                             //grid height
-    double fov = PI/2;                          //alpha, field of view
+    double fov = PI/3;                          //alpha, field of view
     vector<unsigned char> img(W*H*3);           //image vector
 
     for (int i = 0; i < H; i++) {
@@ -45,4 +46,3 @@ int main() {
     stbi_write_png("test.png", W, H, 3, &img[0], 0);
     return 0;
 }
-

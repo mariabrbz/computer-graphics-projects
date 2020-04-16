@@ -1,11 +1,12 @@
 #define PI 3.14159265
 #include "classes.cpp"
 
+double epsilon = 0.001;   //for noise reduction later on
+
 //Diffuse objects light function
 
 Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector S) {
     double V_p;
-    double epsilon = 0.001;
     P += epsilon*N;
     double d = sqrt(dot(S - P, S - P));
     Vector omega = (S - P) / d;
@@ -84,17 +85,36 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
 
     if (inter.exists) {
         Vector N = inter.N;
-        Vector P = inter.P + 0.001*N;       //offset for output refinement
+        Vector P = inter.P + epsilon*N;
 
-        if (spheres[sphere_id].mirror) {
+        //reflection
+        if (spheres[sphere_id].mirror) {                                   
             Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
             return get_color(reflected, ray_depth - 1, light);
         }
 
+        //refraction
+        else if (spheres[sphere_id].transparent) {       
+            double n1 = 1;
+            double n2 = 1.5;     
+            P = P - 2*epsilon*N;     
+            if (dot(ray.u, N) > 0) {
+                P = P + 2*epsilon*N;
+                N = Vector(0., 0., 0.) - N;
+                n1 = 1.5;
+                n2 = 1;
+            }   
+            Vector wt = (n1 / n2)*(ray.u - dot(ray.u, N)*N);   //tangential component of direction
+            Vector wn = Vector(0., 0., 0.) - (sqrt(1 - (n1/n2)*(n1/n2)*(1 - dot(ray.u, N)*dot(ray.u, N))) * N);   //normal component of direction
+            Vector w = wn + wt;
+            Ray refracted = Ray(P, w);
+            return get_color(refracted, ray_depth - 1, light);
+        }
+
+        //diffuse objects
         else {
-            Vector color = intensity(*this, spheres[sphere_id].albedo, P, N, 100000, light);
+            Vector color = intensity(*this, spheres[sphere_id].albedo, P, N, 100000, light);    
             return color;
         }
     }
 }
-

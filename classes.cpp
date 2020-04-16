@@ -29,14 +29,16 @@ class Sphere {
     Vector C;           //center C
     double R;           //radius R
     Vector albedo;      //color RGB 0-1
-    bool mirror;
+    bool mirror;        //reflection
+    bool transparent;   //refraction
     Intersection intersect(const Ray& r);
 
-    Sphere(Vector C, double R, Vector albedo, bool mirror) {
+    Sphere(Vector C, double R, Vector albedo, bool mirror, bool transparent) {
         this->C = C;
         this->R = R;
         this->albedo = albedo;
         this->mirror = mirror;
+        this->transparent = transparent;
     }
 };
 
