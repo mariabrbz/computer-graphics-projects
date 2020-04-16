@@ -1,54 +1,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#define PI 3.14159265
 #include "stb_image_write.h"
-#include <math.h> 
-#include <vector>
 #include "tools.cpp"
-#include <iostream>
-using namespace std;
-
-Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector S) {
-    double V_p;
-    double epsilon = 0.001;
-    P += epsilon*N;
-    double d = sqrt(dot(S - P, S - P));
-    Vector omega = (S - P) / d;
-    Ray r = Ray(S, Vector(0, 0, 0) - omega);
-    if (!scene.intersection(r).exists) { V_p = 1;}
-    else {  
-        if (scene.intersection(r).t > d) {
-            V_p = 1;
-        }
-        else { V_p = 0;}
-    }
-    return (I / (4*PI*PI*d*d)) * V_p * max(dot(N, omega), 0.) * sigma;
-}
-
-Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
-    if (ray_depth < 0) {
-        return Vector(0., 0., 0.);
-    }
-
-    int sphere_id = closest_intersect(ray);
-    Intersection inter = spheres[sphere_id].intersect(ray);
-
-    if (inter.exists) {
-        Vector N = inter.N;
-        Vector P = inter.P + 0.001*N;
-
-        if (spheres[sphere_id].mirror) {
-            Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
-            return get_color(reflected, ray_depth - 1, light);
-        }
-
-        else {
-            Vector color = intensity(*this, spheres[sphere_id].albedo, P, N, 100000, light);
-            return color;
-        }
-
-    }
-}
-
 
 int main() {
 
@@ -69,9 +21,9 @@ int main() {
 
     //camera and pixel grid
     Vector Q = Vector(0, 0, 55);                //camera center
-    double W = 512;                             //grid width
+    double W = 600;                             //grid width
     double H = 512;                             //grid height
-    double fov = PI/3;                          //alpha, field of view
+    double fov = PI/2;                          //alpha, field of view
     vector<unsigned char> img(W*H*3);           //image vector
 
     for (int i = 0; i < H; i++) {
