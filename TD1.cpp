@@ -7,7 +7,7 @@ int main() {
     double n1 = 1;
     double n2 = 1.5;
 
-    //generating the spheres
+    // generating the spheres
     Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), false, false);
     Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), false, false);
     Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1), false, false);
