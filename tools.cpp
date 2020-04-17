@@ -87,6 +87,11 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
         Vector N = inter.N;
         Vector P = inter.P + epsilon*N;
 
+        double k0 = (n1 - n2) * (n1 - n2)/((n1 + n2) * (n1 + n2));
+        double R = k0 + (1 - k0) * pow((1 - dot(N, ray.u)), 5);
+        double T = 1 - R;
+        double u = (double)rand() / 2; 
+
         //reflection
         if (spheres[sphere_id].mirror) {                                   
             Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);

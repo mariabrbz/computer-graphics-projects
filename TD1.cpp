@@ -1,8 +1,12 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "stdlib.h"
 #include "tools.cpp"
 
 int main() {
+    double n1 = 1;
+    double n2 = 1.5;
+
     //generating the spheres
     Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), false, false);
     Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), false, false);
@@ -35,7 +39,7 @@ int main() {
             V[2] = Q[2] - (W / (2 * tan(fov / 2))); 
             Vector n = (V - Q) / sqrt(dot(V - Q, V - Q));                       //normalized ray direction
 
-            Vector color = scene.get_color(Ray(Q, n), 60, light_source);
+            Vector color = scene.get_color(Ray(Q, n), 2, light_source);
 
             double power = 1./2.2; 
             img[(i*W+j)*3+0] = min(255.,max(0., pow(color[0], power)*255));
