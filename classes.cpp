@@ -1,4 +1,5 @@
 #include <math.h> 
+#include <cmath>
 #include <vector>
 #include "vector.cpp"
 using namespace std;
