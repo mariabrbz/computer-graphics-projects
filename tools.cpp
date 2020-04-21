@@ -59,6 +59,17 @@ Vector random_cos(const Vector &N) {
     return x * t1 + y * t2 + z * N;
 }
 
+Vector boxMuller() {
+    double r1 = uniform(engine);
+    double r2 = uniform(engine);
+    double r3 = uniform(engine);
+    double r4 = uniform(engine);
+    double x = sqrt(-2 * log(r1)) * cos(2 * PI * r2);
+    double y = sqrt(-2 * log(r1)) * sin(2 * PI * r2);
+    double z = sqrt(-2 * log(r3)) * cos(2 * PI * r4);
+    return Vector(x, y, z);
+}
+
 //Sphere functions
 
 Intersection Sphere::intersect(const Ray& r) {                                     //returns the intersection of sphere with r
