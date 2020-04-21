@@ -1,11 +1,14 @@
 #define PI 3.14159265
 #include "classes.cpp"
 #include <cstdlib>
+#include <random>
 #include <iostream>
 
+static std::default_random_engine engine(10); 
+static std::uniform_real_distribution<double> uniform(0, 1);
 double epsilon = 0.001;   //for noise reduction later on
 
-//Diffuse objects light function
+//Diffuse objects light functions
 
 Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector S) {
     double V_p;
@@ -22,6 +25,38 @@ Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector
         else { V_p = 0;}
     }
     return (I / (4*PI*PI*d*d)) * V_p * max(dot(N, omega), 0.) * sigma;
+}
+
+Vector random_cos(const Vector &N) {
+    double r1 = uniform(engine);
+    double r2 = uniform(engine);
+    double rad = sqrt(1 - r2);
+    double x = cos(2 * PI * r1) * rad;
+    double y = sin(2 * PI * r1) * rad;
+    double z = sqrt(r2);
+
+    double min_comp = min(min(abs(N[0]), abs(N[1])), abs(N[2]));
+    Vector t1;
+    for (int i = 0; i < 3; i++) {
+        if (abs(N[i]) == min_comp) {
+            switch (i)
+            {
+            case 0:
+                t1 = Vector(0, -N[2], N[1]);
+                break;
+            case 1:
+                t1 = Vector(-N[2], 0, N[0]);
+                break;
+            case 2:
+                t1 = Vector(-N[1], N[0], 0);
+                break;    
+            }
+            break;
+        }
+    }
+    t1 = t1 / sqrt(dot(t1, t1));
+    Vector t2 = cross(N, t1);
+    return x * t1 + y * t2 + z * N;
 }
 
 //Sphere functions
@@ -127,7 +162,12 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
 
         //diffuse objects
         else {
+            //direct lighting
             Vector color = intensity(*this, spheres[sphere_id].albedo, P, N, 100000, light);    
+
+            //indirect lighting
+            Ray random_ray = Ray(P, random_cos(N));
+            color += get_color(random_ray, ray_depth - 1, light) * spheres[sphere_id].albedo;
             return color;
         }
     }

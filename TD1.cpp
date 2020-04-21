@@ -4,7 +4,6 @@
 #include "tools.cpp"
 
 int main() {
-
     // generating the spheres
     Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), false, false);
     Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), false, false);
@@ -13,8 +12,8 @@ int main() {
     Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), false, false);
     Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), false, false);
     Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1), false, true);
-    Sphere object2(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), false, true);
-    Sphere object3(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), false, true);
+    Sphere object2(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), true, false);
+    Sphere object3(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), true, false);
     Vector light_source = Vector(-10, 20, 40);
 
     //creating the scene
@@ -26,10 +25,11 @@ int main() {
     Vector Q = Vector(0, 0, 55);                //camera center
     double W = 600;                             //grid width
     double H = 512;                             //grid height
-    double fov = PI/2.5;                          //alpha, field of view
+    double fov = PI/2.5;                        //alpha, field of view
     vector<unsigned char> img(W*H*3);           //image vector
 
-    for (int i = 0; i < H; i++) {
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(H); i++) {                    //static_cast for parallel programming (since we use int < double)
         for (int j = 0; j < W; j++) {
             Vector V;
             V[0] = Q[0] + 0.5 + j - (W / 2);
@@ -38,17 +38,12 @@ int main() {
             Vector n = (V - Q) / sqrt(dot(V - Q, V - Q));                       //normalized ray direction
             Vector sum = Vector(0., 0., 0.);
 
-            if (scene.spheres[scene.closest_intersect(Ray(Q, n))].transparent || scene.spheres[scene.closest_intersect(Ray(Q, n))].mirror) {
-                int limit = 1000;
-                for (int k = 0; k < limit; k++) {
-                    Vector color = scene.get_color(Ray(Q, n), 5, light_source);
-                    sum += color;
-                }
-                sum = sum/limit;
-            } 
-            else {
-                sum = scene.get_color(Ray(Q, n), 100, light_source);
+            int limit = 800;
+            for (int k = 0; k < limit; k++) {
+                Vector color = scene.get_color(Ray(Q, n), 5, light_source);
+                sum += color;
             }
+            sum = sum/limit;
 
             double power = 1./2.2; 
             img[(i*W+j)*3 + 0] = min(255.,max(0., pow(sum[0], power)*255));
