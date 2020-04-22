@@ -13,5 +13,5 @@ TD1 - Raytracing: Rendering basic spheres, adding reflections and refractions
 TD2 - Adding indirect lighting
 
 <p>
-  <img src="https://github.com/mariabrbz/computer-graphics-projects/blob/master/images/TD2/800rays.png" height="250">
+  <img src="https://github.com/mariabrbz/computer-graphics-projects/blob/master/images/TD2/antialising_300.png" height="250">
 </p>
