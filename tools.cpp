@@ -1,14 +1,14 @@
 #define PI 3.14159265
 #include "classes.cpp"
 #include <cstdlib>
-#include <random>
 #include <iostream>
+#include <random>
 
 static std::default_random_engine engine(10); 
 static std::uniform_real_distribution<double> uniform(0, 1);
 double epsilon = 0.001;   //for noise reduction later on
 
-//Diffuse objects light functions
+//Diffuse objects light function
 
 Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector S) {
     double V_p;
@@ -62,12 +62,9 @@ Vector random_cos(const Vector &N) {
 Vector boxMuller() {
     double r1 = uniform(engine);
     double r2 = uniform(engine);
-    double r3 = uniform(engine);
-    double r4 = uniform(engine);
     double x = sqrt(-2 * log(r1)) * cos(2 * PI * r2);
     double y = sqrt(-2 * log(r1)) * sin(2 * PI * r2);
-    double z = sqrt(-2 * log(r3)) * cos(2 * PI * r4);
-    return Vector(x, y, z);
+    return Vector(x, y, 0.);
 }
 
 //Sphere functions
@@ -173,9 +170,8 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
 
         //diffuse objects
         else {
-            //direct lighting
             Vector color = intensity(*this, spheres[sphere_id].albedo, P, N, 100000, light);    
-
+            
             //indirect lighting
             Ray random_ray = Ray(P, random_cos(N));
             color += get_color(random_ray, ray_depth - 1, light) * spheres[sphere_id].albedo;
