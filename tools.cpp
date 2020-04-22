@@ -68,6 +68,7 @@ Vector boxMuller() {
 }
 
 //Sphere functions
+//uniform(random_engine[omp_get_thread_num()])
 
 Intersection Sphere::intersect(const Ray& r) {                                     //returns the intersection of sphere with r
     Intersection intersection;                                  
@@ -161,7 +162,12 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
                     n2 = 1;
                 }   
                 Vector wt = (n1 / n2)*(ray.u - dot(ray.u, N)*N);   //tangential component of direction
-                Vector wn = Vector(0., 0., 0.) - (sqrt(1 - (n1/n2)*(n1/n2)*(1 - dot(ray.u, N)*dot(ray.u, N))) * N);   //normal component of direction
+                double radic = 1 - (n1/n2)*(n1/n2)*(1 - dot(ray.u, N)*dot(ray.u, N));
+                if (radic < 0) {
+                    Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
+                    return get_color(reflected, ray_depth - 1, light);
+                }
+                Vector wn = Vector(0., 0., 0.) - (sqrt(radic) * N);   //normal component of direction
                 Vector w = wn + wt;
                 Ray refracted = Ray(P, w);
                 return get_color(refracted, ray_depth - 1, light);

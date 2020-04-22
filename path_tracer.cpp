@@ -18,7 +18,7 @@ int main() {
     Vector light_source = Vector(-10, 20, 40);
 
     //creating the scene
-    static Sphere A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, cyan_sphere, yellow_sphere, object, object2, object3};
+    static Sphere A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, cyan_sphere, yellow_sphere, object, object3, object2};//, object2, object3};
     vector<Sphere> scene_components(A, A + sizeof(A) / sizeof(A[0]));
     Scene scene(scene_components);
 
@@ -29,12 +29,14 @@ int main() {
     double fov = PI/2.5;                          //alpha, field of view
     vector<unsigned char> img(W*H*3);           //image vector
 
-    for (int i = 0; i < H; i++) {
-        for (int j = 0; j < W; j++) {
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(H); i++) {
+        #pragma omp parallel for
+        for (int j = 0; j < static_cast<int>(W); j++) {
             Vector V;
             V[2] = Q[2] - (W / (2 * tan(fov / 2))); 
             Vector sum = Vector(0., 0., 0.);
-            int limit = 500;
+            int limit = 300;
             
             for (int k = 0; k < limit; k++) {
                 Vector M = boxMuller();
@@ -52,6 +54,6 @@ int main() {
             img[(i*W+j)*3 + 2] = min(255.,max(0., pow(sum[2], power)*255));
         }
     }
-    stbi_write_png("antialising_50.png", W, H, 3, &img[0], 0);
+    stbi_write_png("antialising_300.png", W, H, 3, &img[0], 0);
     return 0;
 }
