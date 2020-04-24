@@ -6,15 +6,15 @@
 int main() {
 
     // generating the spheres
-    Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), false, false);
-    Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), false, false);
-    Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1), false, false);
-    Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1), false, false);
-    Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), false, false);
-    Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), false, false);
-    Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1), false, false);
-    Sphere object2(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), false, true);
-    Sphere object3(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), true, false);
+    Sphere red_sphere(Vector(0, 1000, 0), 940, Vector(1, 0, 0), "diffuse");
+    Sphere green_sphere(Vector(0, 0, -1000), 940, Vector(0, 1, 0), "diffuse");
+    Sphere blue_sphere(Vector(0, -1000, 0), 990, Vector(0, 0, 1), "diffuse");
+    Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1), "diffuse");
+    Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), "diffuse");
+    Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), "diffuse");
+    Sphere object(Vector(0, 0, 0), 10, Vector(1, 1, 1), "diffuse");
+    Sphere object2(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), "transparent");
+    Sphere object3(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), "mirror");
     Vector light_source = Vector(-10, 20, 40);
 
     //creating the scene
@@ -36,7 +36,7 @@ int main() {
             Vector V;
             V[2] = Q[2] - (W / (2 * tan(fov / 2))); 
             Vector sum = Vector(0., 0., 0.);
-            int limit = 300;
+            int limit = 10;
             
             for (int k = 0; k < limit; k++) {
                 Vector M = boxMuller();

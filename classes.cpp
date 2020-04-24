@@ -1,6 +1,7 @@
 #include <math.h> 
 #include <cmath>
 #include <vector>
+#include <string>
 #include "vector.cpp"
 using namespace std;
 
@@ -30,16 +31,18 @@ class Sphere {
     Vector C;           //center C
     double R;           //radius R
     Vector albedo;      //color RGB 0-1
-    bool mirror;        //reflection
-    bool transparent;   //refraction
+    //bool mirror;        //reflection
+    //bool transparent;   //refraction
+    string type;
     Intersection intersect(const Ray& r);
 
-    Sphere(Vector C, double R, Vector albedo, bool mirror, bool transparent) {
+    Sphere(Vector C, double R, Vector albedo, string type) {  //bool mirror, bool transparent) {
         this->C = C;
         this->R = R;
         this->albedo = albedo;
-        this->mirror = mirror;
-        this->transparent = transparent;
+        this->type = type;
+        //this->mirror = mirror;
+        //this->transparent = transparent;
     }
 };
 

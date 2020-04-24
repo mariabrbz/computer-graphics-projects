@@ -39,8 +39,7 @@ Vector random_cos(const Vector &N) {
     Vector t1;
     for (int i = 0; i < 3; i++) {
         if (abs(N[i]) == min_comp) {
-            switch (i)
-            {
+            switch (i) {
             case 0:
                 t1 = Vector(0, -N[2], N[1]);
                 break;
@@ -134,13 +133,13 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
         Vector P = inter.P + epsilon*N;
 
         //reflection
-        if (spheres[sphere_id].mirror) {                                   
+        if (spheres[sphere_id].type == "mirror") {                                   
             Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
             return get_color(reflected, ray_depth - 1, light);
         }
 
         //refraction
-        else if (spheres[sphere_id].transparent) {       
+        else if (spheres[sphere_id].type == "transparent") {       
             double n1 = 1;
             double n2 = 1.5;     
             P = P - 2*epsilon*N;   
