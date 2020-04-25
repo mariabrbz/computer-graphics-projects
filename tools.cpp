@@ -8,25 +8,7 @@ static std::default_random_engine engine(10);
 static std::uniform_real_distribution<double> uniform(0, 1);
 double epsilon = 0.001;   //for noise reduction later on
 
-//Diffuse objects light function
-
-Vector intensity(Scene scene, Vector sigma, Vector P, Vector N, double I, Vector S) {
-    double V_p;
-    P += epsilon*N;
-    double d = sqrt(dot(S - P, S - P));
-    Vector omega = (S - P) / d;
-    Ray r = Ray(P, omega);
-
-    if (!scene.intersection(r).exists) { V_p = 1;}
-    else {  
-        if (scene.intersection(r).t > d) {
-            V_p = 1;
-        }
-        else { V_p = 0;}
-    }
-    return (I / (4*PI*PI*d*d)) * V_p * max(dot(N, omega), 0.) * sigma;
-}
-
+//useful functions
 Vector random_cos(const Vector &N) {
     double r1 = uniform(engine);
     double r2 = uniform(engine);
@@ -53,7 +35,7 @@ Vector random_cos(const Vector &N) {
             break;
         }
     }
-    t1 = t1 / sqrt(dot(t1, t1));
+    t1 = t1 / sqrt(max(dot(t1, t1), 0.));
     Vector t2 = cross(N, t1);
     return x * t1 + y * t2 + z * N;
 }
@@ -89,7 +71,7 @@ Intersection Sphere::intersect(const Ray& r) {                                  
         }
 
         intersection.P = r.O + intersection.t*r.u;
-        intersection.N = (intersection.P - C) / sqrt(dot(intersection.P - C, intersection.P - C));  
+        intersection.N = (intersection.P - C) / sqrt(max(dot(intersection.P - C, intersection.P - C), 0.));  
     }
     return intersection;
 }
@@ -120,7 +102,7 @@ Intersection Scene::intersection(const Ray& r) {
     return un;
 }
 
-Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
+Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light, double intensity, bool last_bounce_diffuse) {
     if (ray_depth < 0) {
         return Vector(0., 0., 0.);
     }
@@ -132,10 +114,18 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
         Vector N = inter.N;
         Vector P = inter.P + epsilon*N;
 
+        //light source
+        if (spheres[sphere_id].type == "light") {
+            if (last_bounce_diffuse) {
+                return Vector(0., 0., 0.);
+            }
+            return (intensity / (4 * PI * PI * light.R * light.R)) * Vector(1., 1., 1.);
+        }
+
         //reflection
-        if (spheres[sphere_id].type == "mirror") {                                   
+        else if (spheres[sphere_id].type == "mirror") {                                   
             Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
-            return get_color(reflected, ray_depth - 1, light);
+            return get_color(reflected, ray_depth - 1, scene, light, intensity, false);
         }
 
         //refraction
@@ -145,18 +135,18 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
             P = P - 2*epsilon*N;   
 
             double k0 = (n1 - n2) * (n1 - n2)/((n1 + n2) * (n1 + n2));
-            double R = k0 + (1 - k0) * pow((1 - abs(dot(N, ray.u)) ), 5);
+            double R = k0 + (1 - k0) * pow((1 - abs(dot(N, ray.u))), 5);
             double T = 1 - R;
             double ran = double(rand()) / double(RAND_MAX);
 
             if (ran < R) {
                 Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
-                return get_color(reflected, ray_depth - 1, light);
+                return get_color(reflected, ray_depth - 1, scene, light, intensity, false);
             }
             else {
                 if (dot(ray.u, N) > 0) {
-                    P = P + 2*epsilon*N;
-                    N = Vector(0., 0., 0.) - N;
+                    P = P + 2 * epsilon * N;
+                    N =  -N;
                     n1 = 1.5;
                     n2 = 1;
                 }   
@@ -164,22 +154,40 @@ Vector Scene::get_color(const Ray& ray , int ray_depth, Vector light) {
                 double radic = 1 - (n1/n2)*(n1/n2)*(1 - dot(ray.u, N)*dot(ray.u, N));
                 if (radic < 0) {
                     Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
-                    return get_color(reflected, ray_depth - 1, light);
+                    return get_color(reflected, ray_depth - 1, scene, light, intensity, false);
                 }
-                Vector wn = Vector(0., 0., 0.) - (sqrt(radic) * N);   //normal component of direction
+                Vector wn = -(sqrt(radic) * N);   //normal component of direction
                 Vector w = wn + wt;
                 Ray refracted = Ray(P, w);
-                return get_color(refracted, ray_depth - 1, light);
+                return get_color(refracted, ray_depth - 1, scene, light, intensity, false);
             }
         }
 
         //diffuse objects
         else {
-            Vector color = intensity(*this, spheres[sphere_id].albedo, P, N, 100000, light);    
-            
+            //direct lighting
+            Vector D = (P - light.C) / norm(P - light.C);
+            Vector xprime = light.R * random_cos(D) + light.C;
+            Vector Nprime = (xprime - light.C) / norm(xprime - light.C);  
+            double d = norm(xprime - P);
+            Vector omega_i = (xprime - P) / d;
+            double pdf = max(0.001, max(dot(Nprime, D), 0.) / (PI * light.R * light.R));
+            Ray r = Ray(P, omega_i);
+
+            double visible;
+            if (!scene.intersection(r).exists) {visible = 1;}
+            else {  
+                if (scene.intersection(r).t + epsilon > d) {
+                    visible = 1;
+                }
+                else { visible = 0;}
+            }
+
+            Vector color = (intensity / (4 * PI * PI * PI * light.R * light.R)) * visible * max(dot(N, omega_i), 0.) * max(dot(Nprime, -omega_i), 0.) / (sq_norm(xprime - P) * pdf) * spheres[sphere_id].albedo;
+
             //indirect lighting
             Ray random_ray = Ray(P, random_cos(N));
-            color += get_color(random_ray, ray_depth - 1, light) * spheres[sphere_id].albedo;
+            color += get_color(random_ray, ray_depth - 1, scene, light, intensity, true) * spheres[sphere_id].albedo;
             return color;
         }
     }

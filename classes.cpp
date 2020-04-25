@@ -31,18 +31,14 @@ class Sphere {
     Vector C;           //center C
     double R;           //radius R
     Vector albedo;      //color RGB 0-1
-    //bool mirror;        //reflection
-    //bool transparent;   //refraction
     string type;
     Intersection intersect(const Ray& r);
 
-    Sphere(Vector C, double R, Vector albedo, string type) {  //bool mirror, bool transparent) {
+    Sphere(Vector C, double R, Vector albedo, string type) {
         this->C = C;
         this->R = R;
         this->albedo = albedo;
         this->type = type;
-        //this->mirror = mirror;
-        //this->transparent = transparent;
     }
 };
 
@@ -51,7 +47,7 @@ class Scene {
     vector<Sphere> spheres;
     int closest_intersect(const Ray& r);
     Intersection intersection(const Ray& r);
-    Vector get_color(const Ray& ray , int ray_depth, Vector light);
+    Vector get_color(const Ray& ray , int ray_depth, Scene scene, Sphere light, double intensity, bool last_bounce_diffuse);
 
     Scene(vector<Sphere> spheres) {
         this->spheres = spheres;
