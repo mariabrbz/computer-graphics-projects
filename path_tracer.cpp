@@ -13,9 +13,9 @@ int main() {
     Sphere pink_sphere(Vector(0, 0, 1000), 940, Vector(1, 0, 1), "diffuse");
     Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), "diffuse");
     Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), "diffuse");
-    Sphere object(Vector(0, 0, 25), 10, Vector(1, 1, 1), "diffuse");
-    Sphere object2(Vector(-20, 0, 0), 10, Vector(1, 1, 1), "transparent");
-    Sphere object3(Vector(10, 0, 30), 10, Vector(1, 1, 1), "mirror");
+    Sphere object(Vector(0, 0, 15), 10, Vector(1, 1, 1), "diffuse");
+    Sphere object2(Vector(-10, 0, 30), 10, Vector(1, 1, 1), "transparent");
+    Sphere object3(Vector(10, 0, 0), 10, Vector(1, 1, 1), "mirror");
     Sphere light_source(Vector(-10, 20, 40), 5, Vector(1, 1, 1), "light");
 
     //creating the scene
@@ -27,8 +27,8 @@ int main() {
     Vector Q = Vector(0, 0, 55);                //camera center
     double W = 600;                             //grid width
     double H = 512;                             //grid height
-    double fov = PI/2.5;                        //alpha, field of view
-    int limit = 150;                            //amount of rays
+    double fov = PI/2;                        //alpha, field of view
+    int limit = 2000;                            //amount of rays
     vector<unsigned char> img(W*H*3);           //image vector
 
     #pragma omp parallel for
@@ -38,7 +38,7 @@ int main() {
             Vector V;
             V[2] = Q[2] - (W / (2 * tan(fov / 2))); 
             Vector sum(0., 0., 0.);
-            
+            #pragma omp parallel for
             for (int k = 0; k < limit; k++) {
                 Vector M = boxMuller();
                 V[0] = Q[0] + 0.5 + j - (W / 2) + M[0];
@@ -47,7 +47,7 @@ int main() {
                 Vector n = (V - Q) / norm(V - Q);                                                              //normalized ray direction
                 Vector P = Q + (D / abs(n[2])) * n;
                 Vector Qprime(0., 0., Q[2]);
-                double emily = 0.1;     //r_max
+                double emily = 0.65;     //r_max
                 double r = (double(rand()) / double(RAND_MAX)) * emily;
                 double arthur = (double(rand()) / double(RAND_MAX)) * 2 * PI;    //teta but with a better name
                 Qprime[0] = Q[0] + cos(arthur) * r;
