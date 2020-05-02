@@ -16,7 +16,7 @@ int main() {
     Sphere object(Vector(0, 0, 15), 10, Vector(1, 1, 1), "diffuse");
     Sphere object2(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), "transparent");
     Sphere object3(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), "mirror");
-    Vector light_source = Vector(-10, 25, -10);
+    Vector light_source(Vector(-10, 25, -10), 5, Vector(1, 1, 1), "light");
 
     //creating the scene
     static Sphere A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, cyan_sphere, yellow_sphere, object, object2, object3, light_source};
