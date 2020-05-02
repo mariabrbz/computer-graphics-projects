@@ -14,9 +14,9 @@ int main() {
     Sphere cyan_sphere(Vector(1000, 0, 0), 940, Vector(0, 1, 1), "diffuse");
     Sphere yellow_sphere(Vector(-1000, 0, 0), 940, Vector(1, 1, 0), "diffuse");
     Sphere object(Vector(0, 0, 15), 10, Vector(1, 1, 1), "diffuse");
-    Sphere object2(Vector(-10, 0, 30), 10, Vector(1, 1, 1), "transparent");
-    Sphere object3(Vector(10, 0, 0), 10, Vector(1, 1, 1), "mirror");
-    Sphere light_source(Vector(-10, 20, 40), 5, Vector(1, 1, 1), "light");
+    Sphere object2(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), "transparent");
+    Sphere object3(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), "mirror");
+    Vector light_source = Vector(-10, 25, -10);
 
     //creating the scene
     static Sphere A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, cyan_sphere, yellow_sphere, object, object2, object3, light_source};
@@ -28,7 +28,7 @@ int main() {
     double W = 600;                             //grid width
     double H = 512;                             //grid height
     double fov = PI/2;                        //alpha, field of view
-    int limit = 2000;                            //amount of rays
+    int limit = 3000;                            //amount of rays
     vector<unsigned char> img(W*H*3);           //image vector
 
     #pragma omp parallel for
