@@ -6,7 +6,7 @@
 
 static std::default_random_engine engine(10); 
 static std::uniform_real_distribution<double> uniform(0, 1);
-double epsilon = 0.001;   //for noise reduction later on
+double epsilon = 0.00001;   //for noise reduction later on
 
 //useful functions
 Vector random_cos(const Vector &N) {
@@ -112,7 +112,7 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
 
     if (inter.exists) {
         Vector N = inter.N;
-        Vector P = inter.P + epsilon*N;
+        Vector P = inter.P + epsilon * N;
 
         //light source
         if (spheres[sphere_id].type == "light") {
@@ -132,7 +132,7 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
         else if (spheres[sphere_id].type == "transparent") {       
             double n1 = 1;
             double n2 = 1.5;     
-            P = P - 2*epsilon*N;   
+            P = P - 2 * epsilon * N;   
 
             double k0 = (n1 - n2) * (n1 - n2)/((n1 + n2) * (n1 + n2));
             double R = k0 + (1 - k0) * pow((1 - abs(dot(N, ray.u))), 5);
@@ -171,7 +171,7 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
             Vector Nprime = (xprime - light.C) / norm(xprime - light.C);  
             double d = norm(xprime - P);
             Vector omega_i = (xprime - P) / d;
-            double pdf = max(0.001, max(dot(Nprime, D), 0.) / (PI * light.R * light.R));
+            double pdf = max(dot(Nprime, D), 0.) / (PI * light.R * light.R);
             Ray r = Ray(P, omega_i);
 
             double visible;
@@ -183,12 +183,15 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
                 else { visible = 0;}
             }
 
-            Vector color = (intensity / (4 * PI * PI * PI * light.R * light.R)) * visible * max(dot(N, omega_i), 0.) * max(dot(Nprime, -omega_i), 0.) / (sq_norm(xprime - P) * pdf) * spheres[sphere_id].albedo;
+            Vector color(0., 0., 0.);
+            if (pdf != 0.) {
+                color = (intensity / (4 * PI * PI * PI * light.R * light.R)) * visible * max(dot(N, omega_i), 0.) * max(dot(Nprime, -omega_i), 0.) / (sq_norm(xprime - P) * pdf) * spheres[sphere_id].albedo;
+            }
 
             //indirect lighting
             Ray random_ray = Ray(P, random_cos(N));
             color += get_color(random_ray, ray_depth - 1, scene, light, intensity, true) * spheres[sphere_id].albedo;
-            return color;
+            return color / 2;
         }
     }
 }
