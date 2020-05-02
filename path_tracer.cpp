@@ -43,16 +43,16 @@ int main() {
                 Vector M = boxMuller();
                 V[0] = Q[0] + 0.5 + j - (W / 2) + M[0];
                 V[1] = Q[1] - i - 0.5 + (H / 2) + M[1];
-                double D = (W / (2 * tan(fov / 2))) * norm(V - Q) / (norm(V - Q) - (W / (2 * tan(fov / 2))));
+                //double D = (W / (2 * tan(fov / 2))) * norm(V - Q) / (norm(V - Q) - (W / (2 * tan(fov / 2))));
                 Vector n = (V - Q) / norm(V - Q);                                                              //normalized ray direction
-                Vector P = Q + (D / abs(n[2])) * n;
+                /*Vector P = Q + (D / abs(n[2])) * n;
                 Vector Qprime(0., 0., Q[2]);
                 double emily = 0.65;     //r_max
                 double r = (double(rand()) / double(RAND_MAX)) * emily;
                 double arthur = (double(rand()) / double(RAND_MAX)) * 2 * PI;    //teta but with a better name
                 Qprime[0] = Q[0] + cos(arthur) * r;
-                Qprime[1] = Q[1] + sin(arthur) * r;
-                Vector color = scene.get_color(Ray(Qprime, n), 5, scene, light_source, 200000, false);
+                Qprime[1] = Q[1] + sin(arthur) * r;*/
+                Vector color = scene.get_color(Ray(Q, n), 5, scene, light_source, 200000, false);
                 sum += color;
             }
             sum = sum/limit;
