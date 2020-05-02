@@ -1,5 +1,5 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "C:\Users\maria\Desktop\Computer Graphics\stb_image_write.h"
+#include "stb_image_write.h"
 #include "stdlib.h"
 #include "tools.cpp"
 using namespace std;
