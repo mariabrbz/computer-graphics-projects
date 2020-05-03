@@ -1,6 +1,9 @@
 # Computer Graphics Projects
 
 Ray tracer from scratch:
+- path_tracer.cpp contains the main function
+- classes.cpp contains all classes except for Vector (vector.cpp) and TriangleMesh (mesh.cpp)
+- tools.cpp contains all other functions and methods
 
 TD1 - Rendering basic spheres, adding reflections and refractions
 
