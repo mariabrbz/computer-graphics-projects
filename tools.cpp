@@ -96,7 +96,7 @@ Intersection TriangleMesh::intersect(const Ray& r) {
         double a = 1. - b - c;
         intersection.t = dot(A - r.O, N) / dotun;
 
-        if (intersection.t > 0. && 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1) {
+        if (intersection.t >= 0. && 0. <= a && a <= 1. && 0. <= b && b <= 1. && 0. <= c && c <= 1.) {
             intersection.exists = true;
             if (intersection.t < d) {
                 d = intersection.t;

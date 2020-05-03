@@ -17,12 +17,13 @@ int main() {
     Sphere* object2 = new Sphere(Vector(20.5, 0, 0), 10, Vector(1, 1, 1), "transparent");
     Sphere* object3 = new Sphere(Vector(-20.5, 0, 0), 10, Vector(1, 1, 1), "mirror");
     Sphere* light_source = new Sphere(Vector(-10, 20, 40), 5, Vector(1, 1, 1), "light");
+
+    //generating the mesh
     TriangleMesh* mesh = new TriangleMesh(Vector(1, 1, 1), "diffuse");
-    mesh->readOBJ("./cadnav.com_model./Models_F0202A090./cat.obj");
+    mesh->readOBJ("./cadnav.com_model/.Models_F0202A090/.cat.obj");
     for (int i = 0; i < mesh->vertices.size(); i++) {
         mesh->vertices[i] = 0.6 * mesh->vertices[i] + Vector(0, -10, 0);
     }
-
 
     //creating the scene
     static Geometry *A[] = {red_sphere, blue_sphere, green_sphere, pink_sphere, cyan_sphere, yellow_sphere, mesh, light_source};
@@ -34,7 +35,7 @@ int main() {
     double W = 600;                            //grid width
     double H = 512;                            //grid height
     double fov = PI/2;                         //alpha, field of view
-    int limit = 5;                            //amount of rays
+    int limit = 2;                            //amount of rays
     vector<unsigned char> img(W*H*3);          //image vector
 
     #pragma omp parallel for
@@ -75,7 +76,6 @@ int main() {
         }
     }
 
-    cout << "here" << endl;
-    stbi_write_png("cat.png", W, H, 3, &img[0], 0);
+    stbi_write_png("dragon.png", W, H, 3, &img[0], 0);
     return 0;
 }
