@@ -28,7 +28,7 @@ int main() {
     double W = 600;                             //grid width
     double H = 512;                             //grid height
     double fov = PI/2;                        //alpha, field of view
-    int limit = 6000;                            //amount of rays
+    int limit = 3000;                            //amount of rays
     vector<unsigned char> img(W*H*3);           //image vector
 
     #pragma omp parallel for
