@@ -26,12 +26,17 @@ class Ray {
     }
 };
 
-class Sphere {
+class Geometry {
+    public:
+    virtual Intersection intersect(const Ray& r) = 0;
+    Vector albedo;      //color RGB 0-1
+    string type;
+};
+
+class Sphere : public Geometry {
     public:
     Vector C;           //center C
     double R;           //radius R
-    Vector albedo;      //color RGB 0-1
-    string type;
     Intersection intersect(const Ray& r);
 
     Sphere(Vector C, double R, Vector albedo, string type) {
@@ -44,12 +49,12 @@ class Sphere {
 
 class Scene {
     public:
-    vector<Sphere> spheres;
+    vector<Geometry *> objects;
     int closest_intersect(const Ray& r);
     Intersection intersection(const Ray& r);
-    Vector get_color(const Ray& ray , int ray_depth, Scene scene, Sphere light, double intensity, bool last_bounce_diffuse);
+    Vector get_color(const Ray& ray , int ray_depth, Sphere light, double intensity, bool last_bounce_diffuse);
 
-    Scene(vector<Sphere> spheres) {
-        this->spheres = spheres;
+    Scene(vector<Geometry *> objects) {
+        this->objects = objects;
     }
 };

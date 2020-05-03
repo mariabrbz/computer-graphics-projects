@@ -1,5 +1,5 @@
 #define PI 3.14159265
-#include "classes.cpp"
+#include "mesh.cpp"
 #include <cstdlib>
 #include <iostream>
 #include <random>
@@ -49,7 +49,6 @@ Vector boxMuller() {
 }
 
 //Sphere functions
-//uniform(random_engine[omp_get_thread_num()])
 
 Intersection Sphere::intersect(const Ray& r) {                                     //returns the intersection of sphere with r
     Intersection intersection;                                  
@@ -70,20 +69,57 @@ Intersection Sphere::intersect(const Ray& r) {                                  
             else { intersection.t = intersection.t2;}
         }
 
-        intersection.P = r.O + intersection.t*r.u;
+        intersection.P = r.O + intersection.t * r.u;
         intersection.N = (intersection.P - C) / sqrt(max(dot(intersection.P - C, intersection.P - C), 0.));  
+    }
+    return intersection;
+}
+
+//Mesh functions
+
+Intersection TriangleMesh::intersect(const Ray& r) {
+    Intersection intersection;
+    double d = 100000000;
+    for (int i = 0; i < indices.size(); i++) {
+        TriangleIndices triangle = indices[i];
+        Vector A = vertices[triangle.vtxi];
+        Vector B = vertices[triangle.vtxj];
+        Vector C = vertices[triangle.vtxk];
+        Vector e1 = B - A;
+        Vector e2 = C - A;
+        Vector N = cross(e1, e2);
+        double dotun = dot(r.u, N);
+        Vector cross_aminou = cross(A - r.O, r.u);
+
+        double b = dot(e2, cross_aminou) / dotun;
+        double c = - dot(e1, cross_aminou) / dotun;
+        double a = 1. - b - c;
+        intersection.t = dot(A - r.O, N) / dotun;
+
+        if (intersection.t > 0. && 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1) {
+            intersection.exists = true;
+            if (intersection.t < d) {
+                d = intersection.t;
+                intersection.P = r.O + intersection.t * r.u;
+                intersection.N = a * normals[triangle.ni] + b * normals[triangle.nj] + c * normals[triangle.nk];
+                intersection.N = intersection.N / norm(intersection.N);
+            }
+        }
+    }
+    if (d == 100000000) {
+        intersection.exists = false;
     }
     return intersection;
 }
 
 //Scene functions
 
-int Scene::closest_intersect(const Ray& r) {                   //returns the index of the closest sphere that intersects the ray r
+int Scene::closest_intersect(const Ray& r) {                   //returns the index of the closest object that intersects the ray r
     int min = 100000;
     int closest = -1;
-    for (int i = 0; i < spheres.size(); i++) {
-        if (spheres[i].intersect(r).exists && spheres[i].intersect(r).t < min) {
-            min = spheres[i].intersect(r).t;
+    for (int i = 0; i < objects.size(); i++) {
+        if (objects[i]->intersect(r).exists && objects[i]->intersect(r).t < min) {
+            min = objects[i]->intersect(r).t;
             closest = i;
         }
     }
@@ -97,25 +133,26 @@ Intersection Scene::intersection(const Ray& r) {
         un.exists = false;
         return un;
     }
-    Sphere closest_sphere = spheres[i];
-    un = closest_sphere.intersect(r);
+
+    un = objects[i]->intersect(r);
     return un;
 }
 
-Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light, double intensity, bool last_bounce_diffuse) {
+Vector Scene::get_color(const Ray& ray, int ray_depth, Sphere light, double intensity, bool last_bounce_diffuse) {
     if (ray_depth < 0) {
         return Vector(0., 0., 0.);
     }
 
-    int sphere_id = closest_intersect(ray);
-    Intersection inter = spheres[sphere_id].intersect(ray);
-
+    int object_id = closest_intersect(ray);
+    // cout << "here 1" << endl;
+    Intersection inter = this->intersection(ray);
+    // cout << "oh hi mark" << endl;
     if (inter.exists) {
         Vector N = inter.N;
         Vector P = inter.P + epsilon * N;
 
         //light source
-        if (spheres[sphere_id].type == "light") {
+        if (objects[object_id]->type == "light") {
             if (last_bounce_diffuse) {
                 return Vector(0., 0., 0.);
             }
@@ -123,13 +160,13 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
         }
 
         //reflection
-        else if (spheres[sphere_id].type == "mirror") {                                   
+        else if (objects[object_id]->type == "mirror") {                                   
             Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
-            return get_color(reflected, ray_depth - 1, scene, light, intensity, false);
+            return get_color(reflected, ray_depth - 1, light, intensity, false);
         }
 
         //refraction
-        else if (spheres[sphere_id].type == "transparent") {       
+        else if (objects[object_id]->type == "transparent") {       
             double n1 = 1;
             double n2 = 1.5;     
             P = P - 2 * epsilon * N;   
@@ -141,7 +178,7 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
 
             if (ran < R) {
                 Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
-                return get_color(reflected, ray_depth - 1, scene, light, intensity, false);
+                return get_color(reflected, ray_depth - 1, light, intensity, false);
             }
             else {
                 if (dot(ray.u, N) > 0) {
@@ -154,12 +191,12 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
                 double radic = 1 - (n1/n2)*(n1/n2)*(1 - dot(ray.u, N)*dot(ray.u, N));
                 if (radic < 0) {
                     Ray reflected = Ray(P, ray.u - (2 * dot(ray.u, N)) * N);
-                    return get_color(reflected, ray_depth - 1, scene, light, intensity, false);
+                    return get_color(reflected, ray_depth - 1, light, intensity, false);
                 }
                 Vector wn = -(sqrt(radic) * N);   //normal component of direction
                 Vector w = wn + wt;
                 Ray refracted = Ray(P, w);
-                return get_color(refracted, ray_depth - 1, scene, light, intensity, false);
+                return get_color(refracted, ray_depth - 1, light, intensity, false);
             }
         }
 
@@ -175,9 +212,9 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
             Ray r = Ray(P, omega_i);
 
             double visible;
-            if (!scene.intersection(r).exists) {visible = 1;}
+            if (!this->intersection(r).exists) {visible = 1;}
             else {  
-                if (scene.intersection(r).t + epsilon > d) {
+                if (this->intersection(r).t + epsilon > d) {
                     visible = 1;
                 }
                 else { visible = 0;}
@@ -185,12 +222,12 @@ Vector Scene::get_color(const Ray& ray, int ray_depth, Scene scene, Sphere light
 
             Vector color(0., 0., 0.);
             if (pdf != 0.) {
-                color = (intensity / (4 * PI * PI * PI * light.R * light.R)) * visible * max(dot(N, omega_i), 0.) * max(dot(Nprime, -omega_i), 0.) / (sq_norm(xprime - P) * pdf) * spheres[sphere_id].albedo;
+                color = (intensity / (4 * PI * PI * PI * light.R * light.R)) * visible * max(dot(N, omega_i), 0.) * max(dot(Nprime, -omega_i), 0.) / (sq_norm(xprime - P) * pdf) * objects[object_id]->albedo;
             }
 
             //indirect lighting
             Ray random_ray = Ray(P, random_cos(N));
-            color += get_color(random_ray, ray_depth - 1, scene, light, intensity, true) * spheres[sphere_id].albedo;
+            color += get_color(random_ray, ray_depth - 1, light, intensity, true) * objects[object_id]->albedo;
             return color / 2;
         }
     }
