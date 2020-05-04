@@ -19,8 +19,8 @@ int main() {
     Sphere* light_source = new Sphere(Vector(-10, 20, 40), 5, Vector(1, 1, 1), "light");
 
     //generating the mesh
-    TriangleMesh* mesh = new TriangleMesh(Vector(1, 1, 1), "diffuse");
-    mesh->readOBJ("./cadnav.com_model/.Models_F0202A090/.cat.obj");
+    TriangleMesh* mesh = new TriangleMesh(Vector(1, 1, 1), "mirror");
+    mesh->readOBJ("./cadnav.com_model./Models_F0202A090./cat.obj");
     for (int i = 0; i < mesh->vertices.size(); i++) {
         mesh->vertices[i] = 0.6 * mesh->vertices[i] + Vector(0, -10, 0);
     }
@@ -76,6 +76,6 @@ int main() {
         }
     }
 
-    stbi_write_png("dragon.png", W, H, 3, &img[0], 0);
+    stbi_write_png("cat.png", W, H, 3, &img[0], 0);
     return 0;
 }
