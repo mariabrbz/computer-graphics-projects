@@ -56,9 +56,9 @@ int main() {
     int width, height, channels;
     unsigned char *I = stbi_load("lego.png", &width, &height, &channels, 3);
     cout<<I[0]<<endl;
-    unsigned char *M = stbi_load("model.png", &width, &height, &channels, 3);
+    unsigned char *M = stbi_load("model2.png", &width, &height, &channels, 3);
     int n = 40000;
     color_match(I, M, n);
-    stbi_write_png("test.png", 200, 200, 3, &I[0], 600);
+    stbi_write_png("test2.png", 200, 200, 3, &I[0], 600);
     return 0;
 }
