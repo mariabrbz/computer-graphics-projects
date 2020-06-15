@@ -16,9 +16,16 @@ public:
 }; 
  
 // saves a static svg file. The polygon vertices are supposed to be in the range [0..1], and a canvas of size 1000x1000 is created
-void save_svg(const vector<Polygon> &polygons, string filename, string fillcol = "none") {
+void save_svg(const vector<Polygon> &polygons, const Polygon &vertices, string filename, string fillcol = "none") {
     FILE* f = fopen(filename.c_str(), "w+");
     fprintf(f, "<svg xmlns = \"http://www.w3.org/2000/svg\" width = \"1000\" height = \"1000\">\n");
+
+    for (int i = 0; i < vertices.vertices.size(); i++){
+        fprintf(f, "<g>\n");
+        fprintf(f, "<circle cx = \"%3.3f\" cy = \"%3.3f\" r=\"2\"/>", (vertices.vertices[i][0] * 1000), (1000 - vertices.vertices[i][1] * 1000));
+        fprintf(f, "</g>\n");
+    }
+
     for (int i=0; i<polygons.size(); i++) {
         fprintf(f, "<g>\n");
         fprintf(f, "<polygon points = \"");
