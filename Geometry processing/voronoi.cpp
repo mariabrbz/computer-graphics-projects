@@ -1,8 +1,6 @@
-#include "../Raytracer/vector.cpp"
 #include "svg_polygon.cpp"
-#include <vector>
 
-Vector intersect(Vector u, Vector v, vector<int> edge) {
+Vector intersect(Vector u, Vector v, vector<Vector> edge) {
     Vector A = edge[0];
     Vector B = edge[1];
     Vector M = Vector((u[0] + v[0]) / 2, (u[1] + v[1]) / 2, 0.);
@@ -18,32 +16,44 @@ Vector intersect(Vector u, Vector v, vector<int> edge) {
 
 bool inside(Vector P, Vector u, Vector v) {
     Vector M = Vector((u[0] + v[0]) / 2, (u[1] + v[1]) / 2, 0.);
-    return (dot(P - M, v - u) < 0) ? true : false;
+    return (dot(P - M, v - u) < 0);
 }
 
 Polygon sutherland_hodgman(Polygon subject, Polygon clip) {
-    for (int i = 0; i < clip.edges.size(); i++) {
-        Polygon out;
-        
+    Polygon* out;
+    for (int i = 0; i < clip.vertices.size() - 1; i++) {
+        vector<Vector> clip_edge(2);
+        clip_edge[0] = clip.vertices[i];
+        clip_edge[1] = (i == clip.vertices.size() - 1) ? clip.vertices[0] : clip.vertices[i + 1];
+
+        out = new Polygon();
         for(int j = 0; j < subject.vertices.size(); j++) {
             Vector current_vertex = subject.vertices[j];
-            Vector previous_vertex = subject.vertices[(j > 0) ? (j - 1) : subject.vertices[subject.vertices.size() - 1]];
-            Vector intersection = intersect(previous_vertex, current_vertex, clip.edges[i]);
+            Vector previous_vertex = subject.vertices[(j > 0) ? (j - 1) : subject.vertices.size() - 1];
+            Vector intersection = intersect(previous_vertex, current_vertex, clip_edge);
 
-            if (inside(current_vertex, clip.edges[i])) {
-                if(!inside(previous_vertex, clip.edges[i])) {
-                    out.vertices.push_back(intersection);
+            if (inside(current_vertex, clip_edge[0], clip_edge[1])) {
+                if(!inside(previous_vertex, clip_edge[0], clip_edge[1])) {
+                    out->vertices.push_back(intersection);
                 }
-                out.vertices.push_back(current_vertex);
+                out->vertices.push_back(current_vertex);
             }
 
-            else if (inside(previous_vertex, clip.edges[i])) {
-                out.vertices.push_back(intersection);
+            else if (inside(previous_vertex, clip_edge[0], clip_edge[1])) {
+                out->vertices.push_back(intersection);
             }
-
         }
 
-        subject = out;
+        subject = *out;
     }
-    return out;
+    return *out;
+}
+
+vector<Polygon> voronoi( ) {
+    
+}
+
+int main() {
+    
+    return 0;
 }

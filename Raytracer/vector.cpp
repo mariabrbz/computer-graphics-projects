@@ -1,3 +1,5 @@
+#include <cmath>
+
 class Vector {
     private:
     double coords[3];
