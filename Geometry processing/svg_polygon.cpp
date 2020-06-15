@@ -9,6 +9,10 @@ using namespace std;
 class Polygon {  
 public:
     vector<Vector> vertices;
+    Polygon() {}
+    Polygon(vector<Vector> vertices) {
+        this->vertices = vertices;
+    }
 }; 
  
 // saves a static svg file. The polygon vertices are supposed to be in the range [0..1], and a canvas of size 1000x1000 is created

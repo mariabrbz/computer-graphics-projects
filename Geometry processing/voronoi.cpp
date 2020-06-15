@@ -1,10 +1,21 @@
 #include "svg_polygon.cpp"
+#include <random>
+using namespace std;
 
-Vector intersect(Vector u, Vector v, vector<Vector> edge) {
-    Vector A = edge[0];
-    Vector B = edge[1];
-    Vector M = Vector((u[0] + v[0]) / 2, (u[1] + v[1]) / 2, 0.);
-    int t = dot(M - A, u - v) / dot(B - A, u - v);
+static default_random_engine engine(10); 
+static uniform_real_distribution<double> uniform(0, 1);
+
+vector<Vector> random_pointcloud(int n) {
+    vector<Vector> point_cloud(n);
+    for (int i = 0; i < n; i++) {
+        point_cloud[i] = Vector(uniform(engine), uniform(engine), 0.);
+    }
+    return point_cloud;
+}
+
+Vector intersect(Vector A, Vector B, Vector u, Vector v) {
+    Vector M = (u + v) / 2;
+    double t = dot(M - A, u - v) / dot(B - A, u - v);
     Vector P(0., 0., 0.);
     
     if (t >= 0 && t <= 1) {
@@ -15,7 +26,7 @@ Vector intersect(Vector u, Vector v, vector<Vector> edge) {
 }
 
 bool inside(Vector P, Vector u, Vector v) {
-    Vector M = Vector((u[0] + v[0]) / 2, (u[1] + v[1]) / 2, 0.);
+    Vector M = (u + v) / 2;
     return (dot(P - M, v - u) < 0);
 }
 
@@ -30,7 +41,7 @@ Polygon sutherland_hodgman(Polygon subject, Polygon clip) {
         for(int j = 0; j < subject.vertices.size(); j++) {
             Vector current_vertex = subject.vertices[j];
             Vector previous_vertex = subject.vertices[(j > 0) ? (j - 1) : subject.vertices.size() - 1];
-            Vector intersection = intersect(previous_vertex, current_vertex, clip_edge);
+            Vector intersection = intersect(previous_vertex, current_vertex, clip_edge[0], clip_edge[1]);
 
             if (inside(current_vertex, clip_edge[0], clip_edge[1])) {
                 if(!inside(previous_vertex, clip_edge[0], clip_edge[1])) {
@@ -49,11 +60,49 @@ Polygon sutherland_hodgman(Polygon subject, Polygon clip) {
     return *out;
 }
 
-vector<Polygon> voronoi( ) {
-    
+vector<Polygon> voronoi(Polygon subject, Polygon clip) {
+    vector<Polygon> res;
+
+    #pragma omp parallel for
+    for (int i = 0; i < subject.vertices.size(); i++) {
+        Polygon current = clip;
+
+        #pragma omp parallel for
+        for (int j = 0; j < subject.vertices.size(); j++) {
+            if (i != j) {
+                Polygon out;
+
+                #pragma omp parallel for
+                for (int k = 0; k < current.vertices.size(); k++) {
+                    Vector current_vertex = current.vertices[k];
+                    Vector previous_vertex = current.vertices[(k > 0) ? (k - 1) : current.vertices.size() - 1];
+                    Vector intersection = intersect(previous_vertex, current_vertex, subject.vertices[i], subject.vertices[j]);
+
+                    if (inside(current_vertex, subject.vertices[i], subject.vertices[j])) {
+                        if(!inside(previous_vertex, subject.vertices[i], subject.vertices[j])) {
+                            out.vertices.push_back(intersection);
+                        }
+                        out.vertices.push_back(current_vertex);
+                    }
+
+                    else if (inside(previous_vertex, subject.vertices[i], subject.vertices[j])) {
+                        out.vertices.push_back(intersection);
+                    }
+                }
+            current = out;
+            }
+        }
+        res.push_back(current);
+    }
+    return res;
 }
 
 int main() {
-    
+    vector<Vector> point_cloud = random_pointcloud(10000);
+    vector<Vector> rectangle{Vector(0, 0, 0), Vector(0, 1, 0), Vector(1, 1, 0), Vector(1, 0, 0)};
+    Polygon subject(point_cloud);
+    Polygon clip(rectangle);
+
+    save_svg(voronoi(subject, clip), "10kpoints.svg") ;
     return 0;
 }
