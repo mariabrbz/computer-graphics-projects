@@ -16,3 +16,7 @@
 </p>
 
 3. Geometry processing
+
+<p>
+  <img src="https://github.com/mariabrbz/computer-graphics-projects/blob/master/Geometry processing/10kpoints.png" height="200">
+</p>
